@@ -9,6 +9,8 @@ import Foundation
 
 enum Currency: String, CaseIterable {
     case USD
+    case EUR
+    case INR
     
     var code: String {
         self.rawValue

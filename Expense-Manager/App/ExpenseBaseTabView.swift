@@ -34,6 +34,13 @@ struct ExpenseBaseTabView: View {
                 Image(systemName: "list.bullet")
                 Text("Categories")
             }
+            
+            Tab {
+                SettingsListView()
+            } label: {
+                Image(systemName: "gear")
+                Text("Settings")
+            }
         }
         .tabViewBottomAccessory(content: {
             Button("Add Random") {
@@ -49,7 +56,7 @@ struct ExpenseBaseTabView: View {
                     name: ["table", "car","toy","food","drink","beer","lamp"].randomElement()!,
                     category: categories.randomElement()!,
                     amount: Double.random(in: 1...100),
-                    currency: "USD",
+                    currency: Currency.USD.code,
                     dateOfExpense: date,
                     lastUpdated: .now))
             }
