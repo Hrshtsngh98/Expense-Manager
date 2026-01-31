@@ -15,11 +15,20 @@ struct AddExpenseView: View {
     //@State private var categories: [ExpenseCategory] = [.init(id: UUID(), name: "asfasf"), .init(id: .init(), name: "asfs")] // For testing
     @Query(sort: \ExpenseCategory.name) private var categories: [ExpenseCategory]
     
-    @State private var date: Date = .now
-    @State private var name: String = ""
-    @State private var amount: Double = 0
-    @State private var selectedCurrency: Currency = .USD
-    @State private var category: ExpenseCategory?
+    @State var config: AddExpenseViewConfig
+    @State var expense: Expense
+    
+    init(config: AddExpenseViewConfig) {
+        self.config = config
+        
+        switch config {
+        case .Add:
+            @AppStorage(UserDefaultString.UserCurrentSelectedCurrency.rawValue) var currencyCode = Currency.USD.code
+            expense = .init(id: UUID(), name: "", category: nil, amount: 0, currency: currencyCode, dateOfExpense: .now, lastUpdated: .now)
+        case .Edit(let expense):
+            self.expense = expense
+        }
+    }
     
     var body: some View {
         VStack(spacing: 16) {
@@ -32,9 +41,9 @@ struct AddExpenseView: View {
                     .bold()
                 
                 Spacer()
-                TextField("Table", text: $name)
+                TextField("Table", text: $expense.name)
                     .multilineTextAlignment(.trailing)
-                    .frame(width: 100)
+                    .frame(width: 200)
             }
             
             HStack(spacing: 0) {
@@ -43,7 +52,7 @@ struct AddExpenseView: View {
                 
                 Spacer()
                 
-                TextField("$0.00", value: $amount, format: .currency(code: selectedCurrency.code))
+                TextField("$0.00", value: $expense.amount, format: .currency(code: expense.currency))
                     .multilineTextAlignment(.trailing)
                     .keyboardType(.decimalPad)
                     .frame(width: 100)
@@ -54,8 +63,8 @@ struct AddExpenseView: View {
                     .bold()
                 
                 Spacer()
-                Picker("Currency", selection: $selectedCurrency) {
-                    ForEach(Currency.allCases, id: \.self) { item in
+                Picker("Currency", selection: $expense.currency) {
+                    ForEach(Currency.allCases, id: \.code) { item in
                         Text(item.code)
                     }
                 }
@@ -67,8 +76,8 @@ struct AddExpenseView: View {
                     .bold()
                 
                 Spacer()
-                Picker("Category", selection: $category) {
-                    ForEach(categories, id: \.id) { category in
+                Picker("Category", selection: $expense.category) {
+                    ForEach(categories, id: \.self) { category in
                         Text(category.name)
                             .tag(category)
                     }
@@ -80,7 +89,7 @@ struct AddExpenseView: View {
                 Text("Date")
                     .bold()
                 Spacer()
-                DatePicker("Date", selection: $date, displayedComponents: .date)
+                DatePicker("Date", selection: $expense.dateOfExpense, displayedComponents: .date)
                     .datePickerStyle(.compact)
                     .labelsHidden()
             }
@@ -101,23 +110,14 @@ struct AddExpenseView: View {
             .buttonStyle(.borderedProminent)
         }
         .padding()
-        .task {
-            setupDefaultCurrency()
-        }
-    }
-    
-    func setupDefaultCurrency() {
-        @AppStorage(UserDefaultString.UserCurrentSelectedCurrency.rawValue) var currencyCode = Currency.USD.code
-        self.selectedCurrency = Currency(rawValue: currencyCode) ?? .USD
     }
     
     private func saveExpense() {
-        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty, let category else { return }
-        
-        let newExpense = Expense(id: UUID(), name: name, category: category, amount: amount, currency: selectedCurrency.code, dateOfExpense: date, lastUpdated: .now)
-
-        moc.insert(newExpense)
+        let name = expense.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty,
+              expense.category != nil else { return }
+        expense.lastUpdated = .now
+        moc.insert(expense)
         dismiss()
     }
 }
@@ -127,7 +127,7 @@ struct AddExpenseView: View {
     
     Button("Parent view") { showSheet = true }
         .sheet(isPresented: $showSheet) {
-            AddExpenseView()
+            AddExpenseView(config: .Add)
                 .presentationDetents([.medium])
         }
     

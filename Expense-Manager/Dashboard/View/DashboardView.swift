@@ -52,7 +52,7 @@ struct DashboardView: View {
             }
         }
         .sheet(isPresented: $showAddExpenseSheet) {
-            AddExpenseView()
+            AddExpenseView(config: .Add)
                 .presentationDetents([.medium])
         }
     }

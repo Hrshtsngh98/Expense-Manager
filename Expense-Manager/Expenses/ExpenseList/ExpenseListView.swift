@@ -16,12 +16,19 @@ struct ExpenseListView: View {
     @State private var vm: ExpenseListVM = .init()
     @State private var showAddExpenseSheet = false
     @State private var showSortList = false
+    @State private var editExpense: Expense?
     
     var body: some View {
         NavigationStack {
             List {
                 ForEach(expenseList) { expense in
-                    ExpenseItemView(expense: expense)
+                    Button {
+                        editExpense = expense
+                    } label: {
+                        ExpenseItemView(expense: expense)
+                            .contentShape(.rect)
+                    }
+                    .buttonStyle(.plain)
                 }
                 .onDelete { indexSet in
                     for offset in indexSet {
@@ -67,9 +74,14 @@ struct ExpenseListView: View {
             }
         }
         .sheet(isPresented: $showAddExpenseSheet) {
-            AddExpenseView()
+            AddExpenseView(config: .Add)
                 .presentationDetents([.medium])
         }
+        .sheet(item: $editExpense) { expense in
+            AddExpenseView(config: .Edit(expense: expense))
+                .presentationDetents([.medium])
+        }
+        
     }
 }
 
