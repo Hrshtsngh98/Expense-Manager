@@ -13,13 +13,9 @@ struct ExpenseListView: View {
     @Query(sort: [SortDescriptor(\Expense.dateOfExpense, order: .reverse)]) private var expenseList: [Expense]
     @Query private var categories: [ExpenseCategory]
     
-    @State private var vm: ExpenseListVM
+    @State private var vm: ExpenseListVM = .init()
     @State private var showAddExpenseSheet = false
     @State private var showSortList = false
-    
-    init() {
-        self.vm = .init()
-    }
     
     var body: some View {
         NavigationStack {

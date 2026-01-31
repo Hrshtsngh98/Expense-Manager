@@ -35,8 +35,7 @@ struct SettingsListView: View {
                 
                 #if DEBUG
                 Section("DEBUG") {
-                    Button("Add Random") {
-                        
+                    Button("Add Random") {                        
                         var comp = DateComponents()
                         comp.year = (2025...2027).randomElement()!
                         comp.month = (1...12).randomElement()!
